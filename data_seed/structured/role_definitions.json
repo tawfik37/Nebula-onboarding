@@ -1,0 +1,78 @@
+[
+  {
+    "role_id": "ENG-SR-BE",
+    "title": "Senior Backend Engineer",
+    "department": "Engineering",
+    "level": "L4",
+    "onboarding_track": "engineering_standard",
+    "required_tools": [
+      "GitHub_Enterprise",
+      "AWS_Console",
+      "Jira",
+      "Datadog",
+      "PagerDuty",
+      "1Password"
+    ],
+    "access_permissions": ["Class_2_Internal", "Class_3_Restricted_Codebase"],
+    "key_responsibilities": [
+      "Design and implement scalable APIs using Python/FastAPI",
+      "Optimize database queries for high-volume traffic",
+      "Mentor junior developers and conduct code reviews"
+    ],
+    "first_week_goals": [
+      "Complete the 'Nebula Architecture 101' module",
+      "Merge first PR to the 'staging' environment",
+      "Configure local development environment with Docker"
+    ]
+  },
+  {
+    "role_id": "SALES-AE-MID",
+    "title": "Mid-Market Account Executive",
+    "department": "Sales",
+    "level": "L3",
+    "onboarding_track": "sales_growth",
+    "required_tools": [
+      "Salesforce",
+      "Outreach.io",
+      "ZoomInfo",
+      "Gong",
+      "Slack",
+      "1Password"
+    ],
+    "access_permissions": ["Class_2_Internal", "Class_3_Restricted_CustomerData"],
+    "key_responsibilities": [
+      "Manage full sales cycle from qualification to close",
+      "Conduct product demos for mid-sized enterprise clients",
+      "Maintain accurate pipeline data in Salesforce"
+    ],
+    "first_week_goals": [
+      "Complete the 'Nebula Value Proposition' certification",
+      "Shadow 5 demos with Senior AEs",
+      "Set up Outreach sequences"
+    ]
+  },
+  {
+    "role_id": "IT-SYS-ADMIN",
+    "title": "Systems Administrator",
+    "department": "IT Operations",
+    "level": "L3",
+    "onboarding_track": "it_ops_standard",
+    "required_tools": [
+      "Okta_Admin",
+      "Google_Workspace_Admin",
+      "Jira_Service_Desk",
+      "Jamf"
+    ],
+    "access_permissions": ["Class_1_Public", "Class_2_Internal", "Class_3_Restricted_Admin"],
+    "key_responsibilities": [
+      "Provision hardware and software for new hires",
+      "Manage identity access via Okta",
+      "Respond to Tier 2 helpdesk tickets"
+    ],
+    "first_week_goals": [
+      "Audit current Okta groups",
+      "Resolve 10 pending service tickets",
+      "Review device compliance policies"
+    ]
+  }
+]
