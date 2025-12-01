@@ -1,0 +1,56 @@
+[
+  {
+    "employee_id": "EXEC-001",
+    "name": "Elena Rostova",
+    "role_id": "CEO",
+    "title": "Chief Executive Officer",
+    "manager_id": null,
+    "email": "elena.rostova@nebuladynamics.io",
+    "location": "San Francisco, CA"
+  },
+  {
+    "employee_id": "ENG-DIR-01",
+    "name": "Sarah Chen",
+    "role_id": "ENG-DIR",
+    "title": "Director of Engineering",
+    "manager_id": "EXEC-001",
+    "email": "sarah.chen@nebuladynamics.io",
+    "location": "Seattle, WA"
+  },
+  {
+    "employee_id": "IT-DIR-01",
+    "name": "Marcus Thorne",
+    "role_id": "IT-DIR",
+    "title": "Director of IT & Security",
+    "manager_id": "EXEC-001",
+    "email": "marcus.thorne@nebuladynamics.io",
+    "location": "Austin, TX"
+  },
+  {
+    "employee_id": "IT-005",
+    "name": "Alex Johnson",
+    "role_id": "IT-SYS-ADMIN",
+    "title": "Systems Administrator",
+    "manager_id": "IT-DIR-01",
+    "email": "alex.johnson@nebuladynamics.io",
+    "location": "Remote (Chicago)"
+  },
+  {
+    "employee_id": "ENG-042",
+    "name": "Jordan Lee",
+    "role_id": "ENG-SR-BE",
+    "title": "Senior Backend Engineer",
+    "manager_id": "ENG-DIR-01",
+    "email": "jordan.lee@nebuladynamics.io",
+    "location": "Remote (London)"
+  },
+  {
+    "employee_id": "SALES-010",
+    "name": "Priya Patel",
+    "role_id": "SALES-AE-MID",
+    "title": "Mid-Market Account Executive",
+    "manager_id": "EXEC-001",
+    "email": "priya.patel@nebuladynamics.io",
+    "location": "New York, NY"
+  }
+]
