@@ -43,11 +43,11 @@ def process_document(file_path: str) -> List[Document]:
     try:
         loader = TextLoader(file_path, encoding='utf-8')
         raw_docs = loader.load()
-        
+
         # 1. Split by Header
         headers_to_split_on = [("#", "Header 1"), ("##", "Header 2"), ("###", "Header 3")]
         markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
-        
+
         md_header_splits = []
         for doc in raw_docs:
             splits = markdown_splitter.split_text(doc.page_content)
@@ -69,18 +69,18 @@ def process_document(file_path: str) -> List[Document]:
 
 def ingest_data():
     print("--- Starting Incremental Ingestion ---")
-    
+
     if not os.getenv("GOOGLE_API_KEY"):
         print("Error: GOOGLE_API_KEY not found in .env")
         return
 
     embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     vector_store = Chroma(persist_directory=DB_PATH, embedding_function=embeddings)
-    
+
     # 1. Load the current registry (What we knew properly before)
     known_files = load_state()
     current_files = glob.glob(f"{DATA_PATH}/*.md")
-    
+
     current_file_hashes = {}
     docs_to_add = []
     files_to_remove = []
@@ -92,7 +92,7 @@ def ingest_data():
         filename = os.path.basename(file_path)
         new_hash = calculate_file_hash(file_path)
         current_file_hashes[filename] = new_hash
-        
+
         # Check if file is new or modified
         if filename not in known_files:
             print(f"New File Detected: {filename}")
@@ -100,7 +100,7 @@ def ingest_data():
         elif known_files[filename] != new_hash:
             print(f"Modified File: {filename} (Re-ingesting...)")
             # Mark old version for deletion logic below
-            files_to_remove.append(filename) 
+            files_to_remove.append(filename)
             docs_to_add.extend(process_document(file_path))
         else:
             # Hash matches -> No change -> Skip
@@ -113,7 +113,7 @@ def ingest_data():
             files_to_remove.append(filename)
 
     # 4. EXECUTE DB UPDATES
-    
+
     # A. Remove old/changed chunks first
     if files_to_remove:
         print(f"Removing {len(files_to_remove)} outdated documents from DB...")

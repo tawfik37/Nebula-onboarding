@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 
 from langgraph.prebuilt import create_react_agent
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
 
 from rag_engine.agents.tools import search_policies, lookup_employee, lookup_role_requirements
