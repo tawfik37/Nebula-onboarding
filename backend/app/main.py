@@ -1,7 +1,9 @@
 import sys
 import os
 import json
-from fastapi import FastAPI, HTTPException
+import time
+import logging
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
@@ -10,6 +12,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.
 from backend.app.models.schemas import ChatRequest, ChatResponse
 from rag_engine.agents.onboarding_agent import agent_executor
 from langchain_core.messages import HumanMessage, AIMessageChunk, ToolMessage
+
+# --- Logging ---
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("nebula.api")
 
 app = FastAPI(title="Nebula AI Onboarding API", version="1.0")
 
@@ -21,6 +31,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration_ms = (time.time() - start) * 1000
+    logger.info(f"{request.method} {request.url.path} → {response.status_code} ({duration_ms:.0f}ms)")
+    return response
+
 def _extract_text(raw_content) -> str:
     """Extract plain text from Gemini's response format."""
     if isinstance(raw_content, list):
@@ -30,12 +48,43 @@ def _extract_text(raw_content) -> str:
     return str(raw_content)
 
 @app.get("/")
-async def health_check():
+async def root():
     return {"status": "ok", "service": "Nebula Onboarding AI"}
+
+@app.get("/health")
+async def health_check():
+    """Detailed health check with database and LLM status."""
+    health = {"status": "ok", "service": "Nebula Onboarding AI", "checks": {}}
+
+    # Check ChromaDB
+    try:
+        from langchain_chroma import Chroma
+        from langchain_google_genai import GoogleGenerativeAIEmbeddings
+        db_path = os.getenv("DB_PATH", "./chroma_db")
+        if os.path.exists(db_path):
+            embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+            db = Chroma(persist_directory=db_path, embedding_function=embeddings)
+            doc_count = db._collection.count()
+            health["checks"]["vector_db"] = {"status": "ok", "doc_count": doc_count}
+        else:
+            health["checks"]["vector_db"] = {"status": "warning", "doc_count": 0}
+    except Exception as e:
+        health["checks"]["vector_db"] = {"status": "error", "detail": str(e)}
+        health["status"] = "degraded"
+
+    # Check data files
+    data_path = os.getenv("DATA_PATH", "./data_seed")
+    health["checks"]["data_files"] = {
+        "org_chart": os.path.exists(os.path.join(data_path, "structured", "org_chart.json")),
+        "role_definitions": os.path.exists(os.path.join(data_path, "structured", "role_definitions.json")),
+    }
+
+    return health
 
 @app.post("/api/v1/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     try:
+        logger.info(f"Chat request: {request.query[:80]}...")
         response = agent_executor.invoke(
             {"messages": [HumanMessage(content=request.query)]},
             config={"configurable": {"thread_id": request.thread_id}}
@@ -44,13 +93,14 @@ async def chat_endpoint(request: ChatRequest):
         return ChatResponse(answer=_extract_text(final_message.content))
 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        logger.exception("Chat endpoint error")
         raise HTTPException(status_code=500, detail="An internal error occurred. Please try again.")
 
 @app.post("/api/v1/chat/stream")
 async def chat_stream_endpoint(request: ChatRequest):
     """SSE streaming endpoint that yields agent events in real-time."""
+    logger.info(f"Stream request: {request.query[:80]}...")
+
     def event_generator():
         try:
             for event in agent_executor.stream(
@@ -63,6 +113,7 @@ async def chat_stream_endpoint(request: ChatRequest):
                     for msg in messages:
                         if hasattr(msg, "tool_calls") and msg.tool_calls:
                             for tc in msg.tool_calls:
+                                logger.info(f"Tool call: {tc['name']}({tc['args']})")
                                 yield f"data: {json.dumps({'type': 'tool_call', 'name': tc['name'], 'args': tc['args']})}\n\n"
                         elif isinstance(msg, ToolMessage):
                             yield f"data: {json.dumps({'type': 'tool_result', 'name': msg.name, 'content': msg.content[:200]})}\n\n"
@@ -73,8 +124,7 @@ async def chat_stream_endpoint(request: ChatRequest):
 
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
         except Exception as e:
-            import traceback
-            traceback.print_exc()
+            logger.exception("Stream error")
             yield f"data: {json.dumps({'type': 'error', 'content': 'An internal error occurred.'})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
