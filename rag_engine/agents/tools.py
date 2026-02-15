@@ -28,7 +28,7 @@ def search_policies(query: str) -> str:
     remote work, holidays, or IT procedures.
     """
     # Initialize connection
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     vector_store = Chroma(persist_directory=DB_PATH, embedding_function=embeddings)
     
     # INCREASED k=5 to get more context

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Change to the project root directory (one level up from scripts/)
+cd "$(dirname "$0")/.." || exit 1
+
 # --- CONFIGURATION ---
 PROJECT_NAME="Nebula-onboarding"
 VENV_DIR="venv"
