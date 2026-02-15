@@ -14,9 +14,9 @@ from langchain_core.documents import Document
 load_dotenv()
 
 # --- CONFIGURATION ---
-DATA_PATH = "./data_seed/policies"
-DB_PATH = "./chroma_db"
-STATE_FILE = "ingestion_state.json"  # The "Registry" of what we've already learned
+DATA_PATH = os.getenv("DATA_PATH", "./data_seed") + "/policies"
+DB_PATH = os.getenv("DB_PATH", "./chroma_db")
+STATE_FILE = "ingestion_state.json"
 
 def calculate_file_hash(filepath: str) -> str:
     """Creates a unique fingerprint (MD5) for a file's content."""
@@ -74,7 +74,7 @@ def ingest_data():
         print("Error: GOOGLE_API_KEY not found in .env")
         return
 
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     vector_store = Chroma(persist_directory=DB_PATH, embedding_function=embeddings)
     
     # 1. Load the current registry (What we knew properly before)

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Change to the project root directory (one level up from scripts/)
+cd "$(dirname "$0")/.." || exit 1
+
 # --- CONFIGURATION ---
 PROJECT_NAME="Nebula AI Onboarding"
 VENV_PATH="venv"
@@ -21,7 +24,7 @@ if [ -d "$VENV_PATH" ]; then
     source "$VENV_PATH/bin/activate"
 else
     echo -e "${RED}Virtual environment not found.${NC}"
-    echo "Please run ./init_project.sh first."
+    echo "Please run ./init.sh first."
     exit 1
 fi
 
@@ -41,7 +44,7 @@ try:
         print("0")
         exit()
 
-    embedding = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+    embedding = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     db = Chroma(persist_directory="./chroma_db", embedding_function=embedding)
     print(db._collection.count())
 except Exception:

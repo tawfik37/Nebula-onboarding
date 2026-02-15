@@ -5,14 +5,13 @@ import time
 import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
-# We need to add the project root to python path so we can import 'rag_engine'
-# This allows the backend to "see" the agent code we wrote earlier.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 from backend.app.models.schemas import ChatRequest, ChatResponse
 from rag_engine.agents.onboarding_agent import agent_executor
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessageChunk, ToolMessage
 
 # --- Logging ---
 logging.basicConfig(
@@ -24,10 +23,9 @@ logger = logging.getLogger("nebula.api")
 
 app = FastAPI(title="Nebula AI Onboarding API", version="1.0")
 
-# This allows a Frontend (running on localhost:3000) to talk to this Backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:8501").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -92,20 +90,7 @@ async def chat_endpoint(request: ChatRequest):
             config={"configurable": {"thread_id": request.thread_id}}
         )
         final_message = response["messages"][-1]
-        raw_content = final_message.content
-        
-        # Handle different content types from Gemini
-        if isinstance(raw_content, list):
-            # It's a list of parts: [{'type': 'text', 'text': '...'}]
-            final_answer = "".join(
-                [part.get("text", "") for part in raw_content if part.get("type") == "text"]
-            )
-        else:
-            # It's already a string
-            final_answer = str(raw_content)
-        
-        print(f"Sending: {final_answer[:50]}...")
-        return ChatResponse(answer=final_answer)
+        return ChatResponse(answer=_extract_text(final_message.content))
 
     except Exception as e:
         logger.exception("Chat endpoint error")
