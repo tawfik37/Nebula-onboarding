@@ -13,10 +13,9 @@ from langchain_core.messages import HumanMessage, AIMessageChunk, ToolMessage
 
 app = FastAPI(title="Nebula AI Onboarding API", version="1.0")
 
-# This allows a Frontend (running on localhost:3000) to talk to this Backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:8501").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,8 +44,6 @@ async def chat_endpoint(request: ChatRequest):
         return ChatResponse(answer=_extract_text(final_message.content))
 
     except Exception as e:
-        print(f"Error: {str(e)}")
-        # Print the full error to logs for debugging
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="An internal error occurred. Please try again.")

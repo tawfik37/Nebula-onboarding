@@ -8,8 +8,8 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 
 # --- CONFIGURATION ---
-DATA_PATH = "./data_seed"
-DB_PATH = "./chroma_db"
+DATA_PATH = os.getenv("DATA_PATH", "./data_seed")
+DB_PATH = os.getenv("DB_PATH", "./chroma_db")
 
 # --- HELPER: Load JSON Data ---
 def _load_json(filename: str) -> List[Dict[str, Any]]:
@@ -28,7 +28,7 @@ def search_policies(query: str) -> str:
     remote work, holidays, or IT procedures.
     """
     # Initialize connection
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     vector_store = Chroma(persist_directory=DB_PATH, embedding_function=embeddings)
     
     # INCREASED k=5 to get more context
