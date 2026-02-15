@@ -11,6 +11,7 @@ langchain-google-genai
 langchain-core
 langchain-chroma
 langgraph
+langgraph-checkpoint-sqlite
 
 # Vector Database
 chromadb>=0.4.24
