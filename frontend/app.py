@@ -1,9 +1,10 @@
+import os
 import streamlit as st
 import requests
 import uuid
 
 # --- CONFIGURATION ---
-API_URL = "http://127.0.0.1:8000/api/v1/chat"
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000") + "/api/v1/chat"
 st.set_page_config(page_title="Nebula AI Onboarding", page_icon="🚀", layout="wide")
 
 # --- SESSION STATE ---
