@@ -74,7 +74,7 @@ def ingest_data():
         print("Error: GOOGLE_API_KEY not found in .env")
         return
 
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     vector_store = Chroma(persist_directory=DB_PATH, embedding_function=embeddings)
     
     # 1. Load the current registry (What we knew properly before)
