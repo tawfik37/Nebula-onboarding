@@ -1,21 +1,29 @@
 import os
+import json
 import streamlit as st
 import requests
 import uuid
 
 # --- CONFIGURATION ---
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000") + "/api/v1/chat"
+API_BASE = os.getenv("API_URL", "http://127.0.0.1:8000")
+STREAM_URL = API_BASE + "/api/v1/chat/stream"
 st.set_page_config(page_title="Nebula AI Onboarding", page_icon="🚀", layout="wide")
 
+# --- TOOL DISPLAY NAMES ---
+TOOL_ICONS = {
+    "search_policies": "🔍 Searching policies",
+    "lookup_employee": "👤 Looking up employee",
+    "lookup_role_requirements": "📋 Checking role requirements",
+}
+
 # --- SESSION STATE ---
-# We need to remember the chat history and a unique thread ID for the user
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "thread_id" not in st.session_state:
     st.session_state.thread_id = str(uuid.uuid4())
 
-# Sidebar for debugging and session info
+# Sidebar
 with st.sidebar:
     st.header("🛠️ Debugger")
     st.write(f"**Session ID:** `{st.session_state.thread_id}`")
@@ -29,40 +37,72 @@ with st.sidebar:
 st.title("🚀 Nebula AI Onboarding Assistant")
 st.markdown("Welcome to the team! Ask me about **policies**, **your role**, or **who people are**.")
 
-# 1. Display existing chat history
+# Display existing chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
+        if message.get("reasoning"):
+            with st.expander("🧠 Agent Reasoning", expanded=False):
+                for step in message["reasoning"]:
+                    st.markdown(step)
         st.markdown(message["content"])
 
-# 2. Handle User Input
+# Handle User Input
 if prompt := st.chat_input("How can I help you today?"):
-    # A. Display User Message immediately
     with st.chat_message("user"):
         st.markdown(prompt)
-    
-    # Save to history
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # B. Call the Backend API
     with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        message_placeholder.markdown("Thinking...")
-        
+        reasoning_container = st.expander("🧠 Agent Reasoning", expanded=True)
+        answer_placeholder = st.empty()
+        answer_placeholder.markdown("⏳ Thinking...")
+
+        reasoning_steps = []
+        final_answer = ""
+
         try:
             payload = {"query": prompt, "thread_id": st.session_state.thread_id}
-            response = requests.post(API_URL, json=payload)
-            
+            response = requests.post(STREAM_URL, json=payload, stream=True, timeout=60)
+
             if response.status_code == 200:
-                data = response.json()
-                ai_answer = data.get("answer", "Error: No answer received.")
-                
-                # Update the UI with the final answer
-                message_placeholder.markdown(ai_answer)
-                
-                # Save to history
-                st.session_state.messages.append({"role": "assistant", "content": ai_answer})
+                for line in response.iter_lines(decode_unicode=True):
+                    if not line or not line.startswith("data: "):
+                        continue
+                    data = json.loads(line[6:])
+                    event_type = data.get("type")
+
+                    if event_type == "tool_call":
+                        label = TOOL_ICONS.get(data["name"], f"🔧 {data['name']}")
+                        step = f"**{label}** — `{json.dumps(data['args'])}`"
+                        reasoning_steps.append(step)
+                        with reasoning_container:
+                            st.markdown(step)
+
+                    elif event_type == "tool_result":
+                        step = f"↳ *Result from {data['name']}:* `{data['content'][:100]}...`"
+                        reasoning_steps.append(step)
+                        with reasoning_container:
+                            st.markdown(step)
+
+                    elif event_type == "token":
+                        final_answer = data["content"]
+                        answer_placeholder.markdown(final_answer)
+
+                    elif event_type == "error":
+                        answer_placeholder.error(data["content"])
+
+                if not final_answer:
+                    answer_placeholder.markdown("No response received.")
+
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": final_answer or "No response received.",
+                    "reasoning": reasoning_steps,
+                })
             else:
-                message_placeholder.error(f"API Error: {response.status_code}")
-                
+                answer_placeholder.error(f"API Error: {response.status_code}")
+
+        except requests.exceptions.ConnectionError:
+            answer_placeholder.error("Connection Error: Is the backend running?")
         except Exception as e:
-            message_placeholder.error(f"Connection Error: Is the backend running? \n\n{e}")
+            answer_placeholder.error(f"Error: {e}")
