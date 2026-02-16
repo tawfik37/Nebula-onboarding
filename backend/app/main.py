@@ -11,7 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.
 
 from backend.app.models.schemas import ChatRequest, ChatResponse
 from rag_engine.agents.onboarding_agent import agent_executor
-from langchain_core.messages import HumanMessage, AIMessageChunk, ToolMessage
+from langchain_core.messages import HumanMessage, ToolMessage
 
 # --- Logging ---
 logging.basicConfig(
@@ -92,7 +92,7 @@ async def chat_endpoint(request: ChatRequest):
         final_message = response["messages"][-1]
         return ChatResponse(answer=_extract_text(final_message.content))
 
-    except Exception as e:
+    except Exception:
         logger.exception("Chat endpoint error")
         raise HTTPException(status_code=500, detail="An internal error occurred. Please try again.")
 
@@ -123,7 +123,7 @@ async def chat_stream_endpoint(request: ChatRequest):
                                 yield f"data: {json.dumps({'type': 'token', 'content': text})}\n\n"
 
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
-        except Exception as e:
+        except Exception:
             logger.exception("Stream error")
             yield f"data: {json.dumps({'type': 'error', 'content': 'An internal error occurred.'})}\n\n"
 

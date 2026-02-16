@@ -32,15 +32,6 @@ TOOL_ICONS = {
     "lookup_role_requirements": "📋 Checking role requirements",
 }
 
-# --- QUICK QUESTIONS ---
-QUICK_QUESTIONS = [
-    ("💰", "What's the home office stipend?"),
-    ("👤", "Who is the Director of Engineering?"),
-    ("🛠️", "What tools does a Senior Backend Engineer need?"),
-    ("🔐", "What's the password policy?"),
-    ("🏖️", "What's the PTO policy?"),
-]
-
 # --- SESSION STATE ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -146,36 +137,9 @@ if not st.session_state.messages:
     </div>
     """, unsafe_allow_html=True)
 
-    # Quick-start suggestion chips as Streamlit buttons
-    st.markdown("<br>", unsafe_allow_html=True)
-    cols = st.columns(len(QUICK_QUESTIONS))
-    for i, (icon, question) in enumerate(QUICK_QUESTIONS):
-        with cols[i]:
-            if st.button(f"{icon} {question}", key=f"quick_{i}", use_container_width=True):
-                st.session_state.messages.append({"role": "user", "content": question})
-                st.session_state.message_count += 1
-                st.rerun()
-
-# --- CHAT HISTORY ---
-for message in st.session_state.messages:
-    with st.chat_message(message["role"], avatar="🧑‍💼" if message["role"] == "user" else "✨"):
-        if message.get("reasoning"):
-            with st.expander("🧠 Agent Reasoning Chain", expanded=False):
-                for step in message["reasoning"]:
-                    st.markdown(f'<div class="tool-badge">{step}</div>', unsafe_allow_html=True)
-        st.markdown(message["content"])
-
-# --- CHAT INPUT ---
-if prompt := st.chat_input("Ask about policies, people, or your role..."):
-    # Increment question counter
-    st.session_state.message_count += 1
-
-    # Display user message
-    with st.chat_message("user", avatar="🧑‍💼"):
-        st.markdown(prompt)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-
-    # Display assistant response
+# --- HELPER: Stream response from the API ---
+def stream_response(query):
+    """Send a query to the API and stream the response into the chat."""
     with st.chat_message("assistant", avatar="✨"):
         reasoning_container = st.expander("🧠 Agent Reasoning Chain", expanded=True)
         answer_placeholder = st.empty()
@@ -190,7 +154,7 @@ if prompt := st.chat_input("Ask about policies, people, or your role..."):
         final_answer = ""
 
         try:
-            payload = {"query": prompt, "thread_id": st.session_state.thread_id}
+            payload = {"query": query, "thread_id": st.session_state.thread_id}
             response = requests.post(STREAM_URL, json=payload, stream=True, timeout=60)
 
             if response.status_code == 200:
@@ -208,7 +172,7 @@ if prompt := st.chat_input("Ask about policies, people, or your role..."):
                             st.markdown(f'<div class="tool-badge">{step}</div>', unsafe_allow_html=True)
 
                     elif event_type == "tool_result":
-                        step = f"✅ Retrieved data"
+                        step = "✅ Retrieved data"
                         reasoning_steps.append(step)
 
                     elif event_type == "token":
@@ -233,3 +197,23 @@ if prompt := st.chat_input("Ask about policies, people, or your role..."):
             answer_placeholder.error("❌ **Connection Error**: Is the backend running? (`docker-compose up`)")
         except Exception as e:
             answer_placeholder.error(f"❌ **Error**: {e}")
+
+
+# --- CHAT HISTORY ---
+for message in st.session_state.messages:
+    with st.chat_message(message["role"], avatar="🧑‍💼" if message["role"] == "user" else "✨"):
+        if message.get("reasoning"):
+            with st.expander("🧠 Agent Reasoning Chain", expanded=False):
+                for step in message["reasoning"]:
+                    st.markdown(f'<div class="tool-badge">{step}</div>', unsafe_allow_html=True)
+        st.markdown(message["content"])
+
+# --- CHAT INPUT ---
+if prompt := st.chat_input("Ask about policies, people, or your role..."):
+    st.session_state.message_count += 1
+
+    with st.chat_message("user", avatar="🧑‍💼"):
+        st.markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    stream_response(prompt)
