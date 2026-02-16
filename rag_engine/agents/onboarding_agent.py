@@ -1,4 +1,5 @@
 import os
+import sqlite3
 from dotenv import load_dotenv
 
 from langgraph.prebuilt import create_react_agent
@@ -34,9 +35,13 @@ RULES:
 5. Be concise and professional.
 """
 
-# --- 4. Persistent Memory ---
+# --- 4. Persistent Memory (FIXED) ---
 DB_FILE = os.getenv("MEMORY_DB_PATH", "./conversation_history.db")
-memory = SqliteSaver.from_conn_string(DB_FILE)
+
+# Create a persistent SQLite connection
+# check_same_thread=False allows usage across multiple requests
+conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+memory = SqliteSaver(conn)
 
 # --- 5. Create the Agent ---
 agent_executor = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT, checkpointer=memory)
