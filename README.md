@@ -24,7 +24,7 @@ An **Agentic RAG system** that helps new hires navigate company policies, org st
                    │ SSE Stream
 ┌──────────────────▼───────────────────┐
 │          FastAPI Backend             │
-│  /api/v1/chat/stream  ·  /health    │
+│  /api/v1/chat/stream  ·  /health     │
 └──────────────────┬───────────────────┘
                    │
 ┌──────────────────▼───────────────────┐
@@ -32,9 +32,9 @@ An **Agentic RAG system** that helps new hires navigate company policies, org st
 │     (Gemini 2.5 Flash, temp=0)       │
 │                                      │
 │  Tools:                              │
-│  🔍 search_policies  → ChromaDB     │
+│  🔍 search_policies  → ChromaDB      │
 │  👤 lookup_employee   → org_chart    │
-│  📋 lookup_role_reqs  → role_defs   │
+│  📋 lookup_role_reqs  → role_defs    │
 └──────────────────────────────────────┘
 ```
 
@@ -61,7 +61,7 @@ cd Nebula-onboarding
 cp .env.example .env  # Add your GOOGLE_API_KEY
 
 # Run
-docker-compose up --build
+docker compose up --build
 ```
 
 - Frontend: http://localhost:8501
