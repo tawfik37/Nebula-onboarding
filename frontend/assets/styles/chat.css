@@ -1,0 +1,171 @@
+/* ============================================
+   CHAT INTERFACE
+   Premium chat messages, input, and bubbles
+   ============================================ */
+
+/* Chat Message Container */
+.stChatMessage {
+    background: rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: var(--radius-xl) !important;
+    padding: var(--spacing-lg) var(--spacing-xl) !important;
+    margin-bottom: var(--spacing-md) !important;
+    box-shadow: none !important;
+    transition: all var(--transition-base) !important;
+}
+
+.stChatMessage:hover {
+    background: rgba(255, 255, 255, 0.035) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* User Messages - Accent left border */
+.stChatMessage[data-testid*="user"] {
+    background: linear-gradient(
+        135deg,
+        rgba(124, 58, 237, 0.06),
+        rgba(124, 58, 237, 0.02)
+    ) !important;
+    border-left: 3px solid var(--color-primary) !important;
+    border-radius: var(--radius-lg) var(--radius-xl) var(--radius-xl) var(--radius-lg) !important;
+}
+
+/* Assistant Messages - Accent left border */
+.stChatMessage[data-testid*="assistant"] {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-left: 3px solid var(--color-accent) !important;
+    border-radius: var(--radius-lg) var(--radius-xl) var(--radius-xl) var(--radius-lg) !important;
+}
+
+/* Message content animation */
+[data-testid="stChatMessageContent"] {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Message Text */
+.stChatMessage p {
+    color: var(--text-primary) !important;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    margin: 0;
+}
+
+/* Inline code in messages */
+.stChatMessage code {
+    background: rgba(124, 58, 237, 0.12);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    color: var(--color-primary-light);
+    border: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+/* Code blocks in messages */
+.stChatMessage pre {
+    background: rgba(0, 0, 0, 0.35) !important;
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow-x: auto;
+    margin: var(--spacing-sm) 0;
+}
+
+/* Lists in messages */
+.stChatMessage ul, .stChatMessage ol {
+    color: var(--text-primary);
+    padding-left: var(--spacing-lg);
+    margin: var(--spacing-sm) 0;
+}
+
+.stChatMessage li {
+    margin-bottom: var(--spacing-xs);
+    line-height: var(--line-height-base);
+}
+
+/* Strong/bold text */
+.stChatMessage strong {
+    color: white;
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Message Avatars */
+.stChatMessage [data-testid="stChatMessageAvatarIcon"] {
+    font-size: 1.3rem;
+}
+
+/* ---- Chat Input Area ---- */
+/* Nuclear override: force dark on EVERYTHING at the bottom of the page */
+
+[data-testid="stBottom"] *,
+[data-testid="stBottomBlockContainer"] *,
+.stBottom *,
+.stChatInput *,
+[data-testid="stChatInput"] *,
+.stChatInputContainer *,
+[data-testid="stChatInputContainer"] * {
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+/* Now paint the actual input container dark */
+.stChatInput,
+[data-testid="stChatInput"],
+.stChatInputContainer,
+[data-testid="stChatInputContainer"],
+[data-testid="stChatInput"] > div:first-child {
+    background: rgba(10, 10, 27, 0.92) !important;
+    background-color: rgba(10, 10, 27, 0.92) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(124, 58, 237, 0.2) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Focus glow */
+.stChatInput:focus-within,
+[data-testid="stChatInput"]:focus-within {
+    border-color: rgba(124, 58, 237, 0.45) !important;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(124, 58, 237, 0.2),
+                0 0 20px rgba(124, 58, 237, 0.1) !important;
+}
+
+/* Textarea */
+.stChatInput textarea,
+[data-testid="stChatInput"] textarea {
+    color: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+    font-size: var(--font-size-base) !important;
+    font-family: var(--font-family) !important;
+    caret-color: var(--color-primary-light) !important;
+}
+
+.stChatInput textarea::placeholder,
+[data-testid="stChatInput"] textarea::placeholder {
+    color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.stChatInput textarea:focus,
+[data-testid="stChatInput"] textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Send button - re-apply gradient AFTER the nuclear transparent reset */
+.stChatInput button,
+[data-testid="stChatInput"] button {
+    background: var(--gradient-primary) !important;
+    border: none !important;
+    border-radius: var(--radius-md) !important;
+    transition: all var(--transition-base) !important;
+}
+
+.stChatInput button:hover,
+[data-testid="stChatInput"] button:hover {
+    filter: brightness(1.15) !important;
+    transform: scale(1.05) !important;
+}

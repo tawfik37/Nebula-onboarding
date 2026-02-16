@@ -1,13 +1,29 @@
+"""
+Nebula AI - Frontend Application
+Premium UI with modular CSS architecture
+"""
 import os
 import json
 import streamlit as st
 import requests
 import uuid
 
+# Import CSS loader
+from css_loader import inject_css
+
 # --- CONFIGURATION ---
 API_BASE = os.getenv("API_URL", "http://127.0.0.1:8000")
 STREAM_URL = API_BASE + "/api/v1/chat/stream"
-st.set_page_config(page_title="Nebula AI Onboarding", page_icon="🚀", layout="wide")
+
+st.set_page_config(
+    page_title="Nebula AI Onboarding",
+    page_icon="🚀",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# --- INJECT MODULAR CSS ---
+inject_css()
 
 # --- TOOL DISPLAY NAMES ---
 TOOL_ICONS = {
@@ -16,6 +32,15 @@ TOOL_ICONS = {
     "lookup_role_requirements": "📋 Checking role requirements",
 }
 
+# --- QUICK QUESTIONS ---
+QUICK_QUESTIONS = [
+    ("💰", "What's the home office stipend?"),
+    ("👤", "Who is the Director of Engineering?"),
+    ("🛠️", "What tools does a Senior Backend Engineer need?"),
+    ("🔐", "What's the password policy?"),
+    ("🏖️", "What's the PTO policy?"),
+]
+
 # --- SESSION STATE ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -23,39 +48,143 @@ if "messages" not in st.session_state:
 if "thread_id" not in st.session_state:
     st.session_state.thread_id = str(uuid.uuid4())
 
-# Sidebar
+if "message_count" not in st.session_state:
+    st.session_state.message_count = 0
+
+# --- HERO HEADER ---
+st.markdown("""
+<div class="hero-section">
+    <div class="hero-logo">🚀</div>
+    <div class="hero-title">Nebula AI</div>
+    <div class="hero-subtitle">Your Intelligent Onboarding Assistant</div>
+    <div class="hero-badge">
+        <span class="status-dot"></span>
+        Powered by Gemini 2.5 Flash + LangGraph ReAct Agent
+    </div>
+    <div class="hero-divider"></div>
+</div>
+""", unsafe_allow_html=True)
+
+# --- SIDEBAR ---
 with st.sidebar:
-    st.header("🛠️ Debugger")
-    st.write(f"**Session ID:** `{st.session_state.thread_id}`")
-    if st.button("Clear Chat History"):
-        st.session_state.messages = []
-        st.rerun()
+    st.markdown("### Control Panel")
+
+    # Stats
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{len(st.session_state.messages)}</div>
+            <div class="stat-label">Messages</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{st.session_state.message_count}</div>
+            <div class="stat-label">Questions</div>
+        </div>
+        """, unsafe_allow_html=True)
+
     st.divider()
-    st.info("This panel shows internal details. The main chat is on the right.")
 
-# --- MAIN CHAT INTERFACE ---
-st.title("🚀 Nebula AI Onboarding Assistant")
-st.markdown("Welcome to the team! Ask me about **policies**, **your role**, or **who people are**.")
+    st.markdown("**Session ID**")
+    st.code(st.session_state.thread_id[:16] + "...", language=None)
 
-# Display existing chat history
+    if st.button("🔄 New Conversation", use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.thread_id = str(uuid.uuid4())
+        st.session_state.message_count = 0
+        st.rerun()
+
+    st.divider()
+
+    with st.expander("💡 Example Questions"):
+        st.markdown("""
+        - What's the home office stipend?
+        - Who is the Director of Engineering?
+        - What tools does a Senior Backend Engineer need?
+        - Can I use my stipend for a standing desk?
+        - What's the password policy?
+        """)
+
+    st.divider()
+
+    st.markdown("""
+    <div class="sidebar-footer">
+        Built with LangGraph &bull; ChromaDB &bull; FastAPI<br>
+        <a href="https://github.com/tawfik37/Nebula-onboarding">View on GitHub →</a>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --- WELCOME SCREEN (shown when no messages) ---
+if not st.session_state.messages:
+    st.markdown("""
+    <div class="welcome-container">
+        <div class="welcome-message">
+            <div class="welcome-title">How can I help you today?</div>
+            <div class="welcome-text">
+                Ask me about company policies, team members, role requirements,
+                or anything related to your onboarding journey.
+            </div>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="feature-icon">📋</span>
+                <span class="feature-label">Company Policies</span>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">👥</span>
+                <span class="feature-label">Team Directory</span>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🛠️</span>
+                <span class="feature-label">Role Setup</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Quick-start suggestion chips as Streamlit buttons
+    st.markdown("<br>", unsafe_allow_html=True)
+    cols = st.columns(len(QUICK_QUESTIONS))
+    for i, (icon, question) in enumerate(QUICK_QUESTIONS):
+        with cols[i]:
+            if st.button(f"{icon} {question}", key=f"quick_{i}", use_container_width=True):
+                st.session_state.messages.append({"role": "user", "content": question})
+                st.session_state.message_count += 1
+                st.rerun()
+
+# --- CHAT HISTORY ---
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    with st.chat_message(message["role"], avatar="🧑‍💼" if message["role"] == "user" else "✨"):
         if message.get("reasoning"):
-            with st.expander("🧠 Agent Reasoning", expanded=False):
+            with st.expander("🧠 Agent Reasoning Chain", expanded=False):
                 for step in message["reasoning"]:
-                    st.markdown(step)
+                    st.markdown(f'<div class="tool-badge">{step}</div>', unsafe_allow_html=True)
         st.markdown(message["content"])
 
-# Handle User Input
-if prompt := st.chat_input("How can I help you today?"):
-    with st.chat_message("user"):
+# --- CHAT INPUT ---
+if prompt := st.chat_input("Ask about policies, people, or your role..."):
+    # Increment question counter
+    st.session_state.message_count += 1
+
+    # Display user message
+    with st.chat_message("user", avatar="🧑‍💼"):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    with st.chat_message("assistant"):
-        reasoning_container = st.expander("🧠 Agent Reasoning", expanded=True)
+    # Display assistant response
+    with st.chat_message("assistant", avatar="✨"):
+        reasoning_container = st.expander("🧠 Agent Reasoning Chain", expanded=True)
         answer_placeholder = st.empty()
-        answer_placeholder.markdown("⏳ Thinking...")
+        answer_placeholder.markdown(
+            '<div class="thinking-animation">'
+            'Thinking <span class="thinking-dots"><span></span><span></span><span></span></span>'
+            '</div>',
+            unsafe_allow_html=True
+        )
 
         reasoning_steps = []
         final_answer = ""
@@ -73,16 +202,14 @@ if prompt := st.chat_input("How can I help you today?"):
 
                     if event_type == "tool_call":
                         label = TOOL_ICONS.get(data["name"], f"🔧 {data['name']}")
-                        step = f"**{label}** — `{json.dumps(data['args'])}`"
+                        step = f"{label}"
                         reasoning_steps.append(step)
                         with reasoning_container:
-                            st.markdown(step)
+                            st.markdown(f'<div class="tool-badge">{step}</div>', unsafe_allow_html=True)
 
                     elif event_type == "tool_result":
-                        step = f"↳ *Result from {data['name']}:* `{data['content'][:100]}...`"
+                        step = f"✅ Retrieved data"
                         reasoning_steps.append(step)
-                        with reasoning_container:
-                            st.markdown(step)
 
                     elif event_type == "token":
                         final_answer = data["content"]
@@ -92,7 +219,7 @@ if prompt := st.chat_input("How can I help you today?"):
                         answer_placeholder.error(data["content"])
 
                 if not final_answer:
-                    answer_placeholder.markdown("No response received.")
+                    answer_placeholder.markdown("_No response received._")
 
                 st.session_state.messages.append({
                     "role": "assistant",
@@ -100,9 +227,9 @@ if prompt := st.chat_input("How can I help you today?"):
                     "reasoning": reasoning_steps,
                 })
             else:
-                answer_placeholder.error(f"API Error: {response.status_code}")
+                answer_placeholder.error(f"⚠️ API Error: {response.status_code}")
 
         except requests.exceptions.ConnectionError:
-            answer_placeholder.error("Connection Error: Is the backend running?")
+            answer_placeholder.error("❌ **Connection Error**: Is the backend running? (`docker-compose up`)")
         except Exception as e:
-            answer_placeholder.error(f"Error: {e}")
+            answer_placeholder.error(f"❌ **Error**: {e}")

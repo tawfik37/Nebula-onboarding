@@ -1,0 +1,116 @@
+/* ============================================
+   SIDEBAR
+   Premium sidebar with frosted glass effect
+   ============================================ */
+
+/* Sidebar Container */
+[data-testid="stSidebar"] {
+    background: rgba(3, 0, 20, 0.92) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Sidebar Content */
+[data-testid="stSidebar"] > div:first-child {
+    padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+/* Sidebar Headings */
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-base);
+    letter-spacing: 0.01em;
+}
+
+/* Sidebar Divider */
+[data-testid="stSidebar"] hr {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    margin: var(--spacing-md) 0;
+}
+
+/* Sidebar Code Block (Session ID) */
+[data-testid="stSidebar"] code {
+    background: rgba(124, 58, 237, 0.08);
+    color: var(--color-primary-light);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid rgba(124, 58, 237, 0.12);
+}
+
+/* Sidebar Links */
+[data-testid="stSidebar"] a {
+    color: var(--color-primary-light);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+[data-testid="stSidebar"] a:hover {
+    color: var(--color-accent-light);
+    text-decoration: none;
+}
+
+/* Sidebar Text */
+[data-testid="stSidebar"] .stMarkdown {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Sidebar Buttons */
+[data-testid="stSidebar"] .stButton button {
+    background: rgba(124, 58, 237, 0.12) !important;
+    border: 1px solid rgba(124, 58, 237, 0.2) !important;
+    box-shadow: none !important;
+    font-size: var(--font-size-sm) !important;
+    padding: 0.6rem 1rem !important;
+}
+
+[data-testid="stSidebar"] .stButton button:hover {
+    background: rgba(124, 58, 237, 0.2) !important;
+    border-color: rgba(124, 58, 237, 0.35) !important;
+    box-shadow: var(--shadow-glow-primary) !important;
+    transform: none !important;
+}
+
+/* Sidebar Expander */
+[data-testid="stSidebar"] .streamlit-expanderHeader {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: var(--font-size-sm) !important;
+    padding: var(--spacing-sm) var(--spacing-md) !important;
+}
+
+[data-testid="stSidebar"] .streamlit-expanderContent {
+    background: rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.04) !important;
+    border-top: none !important;
+}
+
+/* Sidebar list items */
+[data-testid="stSidebar"] li {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+}
+
+/* Footer text in sidebar */
+.sidebar-footer {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-xs);
+    padding-top: var(--spacing-md);
+    line-height: var(--line-height-relaxed);
+}
+
+.sidebar-footer a {
+    color: var(--color-primary-light) !important;
+    font-weight: var(--font-weight-medium);
+}
